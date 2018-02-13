@@ -64,19 +64,20 @@ for f in range(0,len(fileList),1):
     gpSbjInfo = pd.concat([gpSbjInfo,sbjInfo],axis=0)
     gpData=pd.concat([gpData,D],axis=0)
 #%%
-gpData['sbjResp_mem']=copy(gpData['sbjResp'])
+gpData['sbjResp_mem']=copy(gpData['sbjResp'])  # allow sbjResp to have confidence rating info 1(def-new) to 4 (def-old)
+gpData.loc[(gpData.phase==3) & (gpData.sbjResp_mem==4),'sbjResp_mem']='defOld'
+gpData.loc[(gpData.phase==3) & (gpData.sbjResp_mem==3),'sbjResp_mem']='probOld'
+gpData.loc[(gpData.phase==3) & (gpData.sbjResp_mem==2),'sbjResp_mem']='probNew'
+gpData.loc[(gpData.phase==3) & (gpData.sbjResp_mem==1),'sbjResp_mem']='defNew'
+
 # no response trials
 gpData.loc[gpData.sbjResp==99,'sbjACC'] = 0  
 gpData.loc[gpData.sbjResp==99,'sbjRT'] = np.nan
 # accuracy for memory task , default accuracy is 0
-gpData.loc[(gpData.phase==3) & (gpData.sbjResp_mem>=3) & (gpData.memCond<=4),'sbjACC']=1
-gpData.loc[(gpData.phase==3) & (gpData.sbjResp_mem<=2) & (gpData.memCond==5),'sbjACC']=1
+gpData.loc[(gpData.phase==3) & (gpData.sbjResp>=3) & (gpData.memCond<=4),'sbjACC']=1
+gpData.loc[(gpData.phase==3) & (gpData.sbjResp<=2) & (gpData.memCond==5),'sbjACC']=1
 
 
-gpData.loc[(gpData.phase==3) & (gpData.sbjResp_mem==4),'sbjResp']='defOld'
-gpData.loc[(gpData.phase==3) & (gpData.sbjResp_mem==3),'sbjResp']='probOld'
-gpData.loc[(gpData.phase==3) & (gpData.sbjResp_mem==2),'sbjResp']='probNew'
-gpData.loc[(gpData.phase==3) & (gpData.sbjResp_mem==1),'sbjResp']='defNew'
 
 
 # convert codings to categorical variables with meaningful names
@@ -103,7 +104,25 @@ gpData['memCond']     = pd.Categorical(gpData.memCond, categories=['old-switch-R
 gpData['trialType']   = pd.Categorical(gpData.trialType, categories=['switch','repeat'], ordered=True)
 gpData['sbjResp_mem'] = pd.Categorical(gpData.sbjResp_mem, categories=['defOld','probOld','probNew','defNew'], ordered=True)
 
+gpData.reset_index(inplace=True)
 
+#
+#%% do a fist pass to exclude subjects with low cued task accuracy
+#totalSCNT = len(np.unique(gpData.sbjId))
+#goodSbj=[]
+#excludeSbj=[]
+#for S in np.unique(gpData.sbjId):
+#    D = gpData.loc[gpData.sbjId==S]    
+#    if D[D.phase=='TaskSw'].sbjACC.mean()*100 > 65:
+#        goodSbj.append(S)
+#    else:
+#        excludeSbj.append(S)
+#
+#for S in excludeSbj:
+#    gpData.drop(gpData[gpData.sbjId==S].index, axis=0, inplace=True)
+#%% #%% 
+
+totalSCNT = len(np.unique(gpData.sbjId))
 # output DataFrame
 os.chdir(workingDir)  # scripts directory
 gpData.to_pickle('gpData_v1.pkl')
