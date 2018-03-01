@@ -59,7 +59,13 @@ for f in range(0,len(fileList),1):
     sbjInfo['sbjId']=SCNT
     sbjInfo.index = sbjInfo.sbjId
     sbjInfo.drop('sbjId',axis=1,inplace=True)
-              
+    # 
+    D.task1ACC=0;
+    D['stimUnique'] = (D.stimCat*100 + D.stim).astype(int)
+    for stimId in D.loc[D.phase==1,'stimUnique'].unique():
+        D.loc[(D.stimUnique==stimId) & (D.phase==3),'task'] = int(D.loc[(D.stimUnique==stimId) & (D.phase==1),'task'])  # not sure why without int(), it didn't work..
+        D.loc[(D.stimUnique==stimId) & (D.phase==1),'task1ACC'] = copy(D.loc[(D.stimUnique==stimId) & (D.phase==1),'sbjACC'])
+        D.loc[(D.stimUnique==stimId) & (D.phase==3),'task1ACC'] = int(D.loc[(D.stimUnique==stimId) & (D.phase==1),'task1ACC'])  # not sure why without int(), it didn't work..
     
     gpSbjInfo = pd.concat([gpSbjInfo,sbjInfo],axis=0)
     gpData=pd.concat([gpData,D],axis=0)
@@ -81,6 +87,18 @@ gpData.loc[(gpData.phase==3) & (gpData.sbjResp<=2) & (gpData.memCond==5),'sbjACC
 
 
 # convert codings to categorical variables with meaningful names
+gpData['Repetition'] = copy(gpData['runId']) # convert runId into repetition for TaskSw phase
+gpData.loc[gpData.runId>=2,'Repetition']=np.nan
+gpData.Repetition.replace(0,'Rep1',inplace=True)
+gpData.Repetition.replace(1,'Rep1',inplace=True)
+
+# create a new label as old vs. new item for Memory task
+gpData['oldNew'] = copy(gpData['response']) 
+gpData.oldNew.replace(0,'New', inplace=True)
+gpData.oldNew.replace(1,'Old', inplace=True)
+gpData.loc[gpData.phase<=2,'oldNew']=np.nan
+
+# preserve the 1,2 task numbering
 gpData['taskNum']    = copy(gpData['task'])  # 
 
 gpData.phase.replace(1,'TaskSw', inplace=True)
@@ -99,10 +117,18 @@ gpData.memCond.replace(3,'old-repeat-RIC', inplace=True)
 gpData.memCond.replace(4,'old-repeat-RC', inplace=True)
 gpData.memCond.replace(5,'new', inplace=True)
 
+gpData.stimCat.replace(1,'Liv-Lg', inplace=True)
+gpData.stimCat.replace(2,'Liv-Sm', inplace=True)
+gpData.stimCat.replace(3,'NLiv-Lg', inplace=True)
+gpData.stimCat.replace(4,'NLiv-Sm', inplace=True)
+
+
 gpData['respComp']   = pd.Categorical(gpData.respComp, categories=['RC','RIC'], ordered=True)
 gpData['memCond']     = pd.Categorical(gpData.memCond, categories=['old-switch-RIC','old-switch-RC','old-repeat-RIC','old-repeat-RC','new'], ordered=True)
 gpData['trialType']   = pd.Categorical(gpData.trialType, categories=['switch','repeat'], ordered=True)
 gpData['sbjResp_mem'] = pd.Categorical(gpData.sbjResp_mem, categories=['defOld','probOld','probNew','defNew'], ordered=True)
+gpData['stimCat']     = pd.Categorical(gpData.stimCat, categories=['Liv-Lg','Liv-Sm','NLiv-Lg','NLiv-Sm'], ordered=True)
+gpData['Repetition']  = pd.Categorical(gpData.Repetition, categories=['Rep1'], ordered=True)
 
 gpData.reset_index(inplace=True)
 
