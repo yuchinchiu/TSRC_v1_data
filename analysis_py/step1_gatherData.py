@@ -14,7 +14,7 @@ import glob
 import pandas as pd
 import numpy as np
 from copy import copy
-from extractData import extractDataFromCSV
+#from extractData import extractDataFromCSV
 
 #workingDir = os.path.dirname(os.path.realpath(__file__))
 workingDir = "C:\\Users\\yc180\\Documents\\YCCProjects\\TSRC_v1_data\\analysis_py"
@@ -26,7 +26,7 @@ csvDir  = os.getcwd() + os.sep + 'data' + os.sep + 'v1_csv' + os.sep
 
 # run the following function to extract missing data from CSV files
 
-extractDataFromCSV(dataDir, csvDir)
+#extractDataFromCSV(dataDir, csvDir)
 
 
 fileList     = glob.glob(dataDir +  "*.log")
@@ -89,7 +89,7 @@ gpData.loc[(gpData.phase==3) & (gpData.sbjResp<=2) & (gpData.memCond==5),'sbjACC
 # convert codings to categorical variables with meaningful names
 gpData['Repetition'] = copy(gpData['runId']) # convert runId into repetition for TaskSw phase
 gpData.loc[gpData.runId>=2,'Repetition']=np.nan
-gpData.Repetition.replace(0,'Rep1',inplace=True)
+gpData.Repetition.replace(0,'Rep0',inplace=True)
 gpData.Repetition.replace(1,'Rep1',inplace=True)
 
 # create a new label as old vs. new item for Memory task
@@ -151,8 +151,8 @@ gpData.reset_index(inplace=True)
 totalSCNT = len(np.unique(gpData.sbjId))
 # output DataFrame
 os.chdir(workingDir)  # scripts directory
-gpData.to_pickle('gpData_v1.pkl')
-gpSbjInfo.to_pickle('gpSbjInfo_v1.pkl')
+gpData.to_pickle('gpData.pkl')
+gpSbjInfo.to_pickle('gpSbjInfo.pkl')
 gpData.to_csv('gpData.csv',encoding='utf-8', index=False)
 gpSbjInfo.to_csv('gpSbjInfo.csv',encoding='utf-8', index=False)
 
